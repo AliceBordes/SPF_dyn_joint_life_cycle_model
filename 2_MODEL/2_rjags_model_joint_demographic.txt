@@ -1,0 +1,703 @@
+model_simple <- "
+
+
+
+data{
+
+#n_obs = i_obs finalement, d'ou *Q pour retrouver n_obs
+
+
+Q[1] <- 0.39
+Q[2] <- 0.43
+
+  n.ssn.obs.moy[1]<-mean(n.ssn.obs[c(1:20,22:23),1])
+  n.ssn.obs.moy[2]<-mean(n.ssn.obs[c(1:20,22:23),2])
+
+  n.ssn.obs.sd[1]<-sd(n.ssn.obs[c(1:20,22:23),1])
+  n.ssn.obs.sd[2]<-sd(n.ssn.obs[c(1:20,22:23),2])
+
+for (e in 1:2)
+{
+  min.N1.prior[e] <- (mean(n1.obs[1:5,e])/2)*Q[e] 
+  max.N1.prior[e] <- (2*mean(n1.obs[1:5,e]))*Q[e] 
+
+  min.N2.prior[e] <- (mean(n2.obs[1:5,e])/2)*Q[e] 
+  max.N2.prior[e] <- (2*mean(n2.obs[1:5,e]))*Q[e] 
+
+  min.N3.prior[e] <- (mean(n3.obs[1:5,e])/2)*Q[e]
+  max.N3.prior[e] <- (2*mean(n3.obs[1:5,e]))*Q[e] 
+
+  min.N4.prior[e] <- (mean(n4.obs[1:5,e])/2)*Q[e] 
+  max.N4.prior[e] <- (2*mean(n4.obs[1:5,e]))*Q[e] 
+
+  L1.prior[e] <- mean(l1.obs[c(19:20,22:23),e])
+  L2.prior[e] <- mean(l2.obs[1:5,e])
+  L3.prior[e] <- mean(l3.obs[1:5,e])
+  L4.prior[e] <- mean(l4.obs[1:5,e])
+
+  L1.prior.annuel[e] <- mean(l1.obs[c(1:20,22:23),e])
+
+
+#variables pour regression sur M1
+  #abundances
+  
+  n1.obs.moy[e]<-mean(n1.obs[c(1:20,22:23),e])
+  n1.obs.sd[e]<-sd(n1.obs[c(1:20,22:23),e])
+
+  n2.obs.moy[e]<-mean(n2.obs[c(1:20,22:23),e])
+  n2.obs.sd[e]<-sd(n2.obs[c(1:20,22:23),e])
+
+  nlarge.obs.moy[e]<-mean(nlarge.obs[c(1:20,22:23),e])
+  nlarge.obs.sd[e]<-sd(nlarge.obs[c(1:20,22:23),e])
+
+
+  #tailles
+
+  l1.obs.moy[e]<-mean(l1.obs[c(1:20,22:23),e])
+  l1.obs.sd[e]<-sd(l1.obs[c(1:20,22:23),e])
+
+}
+
+for (e in 2)
+{
+  min.N5.prior[e] <- (mean(n5.obs[1:5,e])/2)*Q[e]
+  max.N5.prior[e] <- (2*mean(n5.obs[1:5,e]))*Q[e] 
+
+  min.N6.prior[e] <- (mean(n6.obs[1:5,e])/2)*Q[e]
+  max.N6.prior[e] <- (2*mean(n6.obs[1:5,e]))*Q[e] 
+
+  min.N7.prior[e] <- (mean(n7.obs[1:5,e])/2)*Q[e]
+  max.N7.prior[e] <- (2*mean(n7.obs[1:5,e]))*Q[e] 
+
+  L5.prior[e] <- mean(l5.obs[1:5,e])
+  L6.prior[e] <- mean(l6.obs[1:5,e])
+  L7.prior[e] <- mean(l7.obs[1:5,e])
+
+  l5.obs.moy[e]<-mean(l5.obs[c(1:20,22:23),e]) 
+  l5.obs.sd[e]<-sd(l5.obs[c(1:20,22:23),e])
+
+}
+
+}  # fin data 
+
+
+
+
+
+model {
+
+##########################
+####      Prior       ####
+##########################
+
+# Abondance 
+###########
+
+for (e in 1:2)
+{
+  N1[1,e] ~ dunif(min.N1.prior[e],max.N1.prior[e]) # Estimation de l'abondance de la classe d'âge 1 la dernière année 
+  N2[1,e] ~ dunif(min.N2.prior[e],max.N2.prior[e]) # Estimation de l'abondance de la classe d'âge 2 la première année 
+  N3[1,e] ~ dunif(min.N3.prior[e],max.N3.prior[e]) # Estimation de l'abondance de la classe d'âge 3 la première année 
+  N4[1,e] ~ dunif(min.N4.prior[e],max.N4.prior[e]) # Estimation de l'abondance de la classe d'âge 4 la première année  
+}# fin boucle e
+
+for (e in 2)
+{
+  N5[1,e] ~ dunif(min.N5.prior[e],max.N5.prior[e]) # Estimation de l'abondance de la classe d'âge 5 la première année 
+  N6[1,e] ~ dunif(min.N6.prior[e],max.N6.prior[e]) # Estimation de l'abondance de la classe d'âge 6 la première année  
+  N7[1,e] ~ dunif(min.N7.prior[e],max.N7.prior[e]) # Estimation de l'abondance de la classe d'âge 7 la première année  
+}# fin boucle e
+
+##### taux demographique de transition entre les reproducteurs SSN et la classe d age 1 N1
+
+mu_Z.SSN[1]<-1.223
+mu_Z.SSN[2]<-0.796  # data_SP$N1[i+1]/N.SSN[i] avec N.SSN<-data_SP$N1*maturite$age1+...
+
+for (e in 1:2)
+{
+log_mu_Z.SSN[e] ~ dnorm(log(mu_Z.SSN[e]),0.1) # Moyenne interannuelle de la mortalité tot de la classe d'âge SSN
+sigma.Z.SSN[e] ~ dunif(0,5) # Variabilité interannuelle de la mortalité naturelle de la classe d'âge SSN
+}# fin boucle e
+
+# Longueur corporelle  
+#####################
+
+  sigma.L <- 1 # Variabilité de la valeur de la longueur corporelle de la première année 
+
+for (e in 1:2)
+{
+  L1[n_annee,e] ~ dlnorm(log(L1.prior[e]),1/(sigma.L*sigma.L))
+  L2[1,e] ~ dlnorm(log(L2.prior[e]),1/(sigma.L*sigma.L)) 
+  L3[1,e] ~ dlnorm(log(L3.prior[e]),1/(sigma.L*sigma.L))
+  L4[1,e] ~ dlnorm(log(L4.prior[e]),1/(sigma.L*sigma.L))
+}# fin boucle e
+
+for (e in 2)
+{
+  L5[1,e] ~ dlnorm(log(L5.prior[e]),1/(sigma.L*sigma.L))
+  L6[1,e] ~ dlnorm(log(L6.prior[e]),1/(sigma.L*sigma.L))
+  L7[1,e] ~ dlnorm(log(L7.prior[e]),1/(sigma.L*sigma.L))
+}# fin boucle e
+
+
+# Paramètre des distributions des Mortalités Naturelle 
+######################
+
+
+  mu_M1[1] <- 0.733 # Taux de mortalité naturelle moyen pour la classe d'âge 1 de 1987 à 2012 (Uriarte et al., 2016)
+  mu_M2[1] <- 1.326 # Taux de mortalité naturelle moyen pour la classe d'âge 2 à 4 de 1987 à 2012 (Uriarte et al., 2016)
+  mu_M3[1] <- 1.326 # Taux de mortalité naturelle moyen pour la classe d'âge 2 à 4 de 1987 à 2012 (Uriarte et al., 2016)
+
+  mu_M1[2] <- 0.692 # Taux de mortalité naturelle moyen pour la classe d'âge 1 mais pour stock zone27 subarea 8c et 9a (ICES WGMHSA Report 2021)
+  mu_M2[2] <- 0.546 # Taux de mortalité naturelle moyen pour la classe d'âge 2 mais pour stock zone27 subarea 8c et 9a (ICES WGMHSA Report 2021)
+  mu_M3[2] <- 0.475 # Taux de mortalité naturelle moyen pour la classe d'âge 3 mais pour stock zone27 subarea 8c et 9a (ICES WGMHSA Report 2021)
+  mu_M4[2] <- 0.435 # Taux de mortalité naturelle moyen pour la classe d'âge 4 mais pour stock zone27 subarea 8c et 9a (ICES WGMHSA Report 2021)
+  mu_M5[2] <- 0.412 # Taux de mortalité naturelle moyen pour la classe d'âge 5 mais pour stock zone27 subarea 8c et 9a (ICES WGMHSA Report 2021)
+  mu_M6[2] <- 0.400 # Taux de mortalité naturelle moyen pour la classe d'âge 6 mais pour stock zone27 subarea 8c et 9a (ICES WGMHSA Report 2021)
+  
+for (e in 1:2)
+{
+  log_mu_M1[e] ~ dnorm(log(mu_M1[e]),0.1) # Moyenne interannuelle de la mortalité naturelle de la classe d'âge 1
+  log_mu_M2[e] ~ dnorm(log(mu_M2[e]),0.1) # Moyenne interannuelle de la mortalité naturelle de la classe d'âge 2 
+  log_mu_M3[e] ~ dnorm(log(mu_M3[e]),0.1) # Moyenne interannuelle de la mortalité naturelle de la classe d'âge 3
+
+  sigma.M1[e] ~ dunif(0,10) # Variabilité interannuelle de la mortalité naturelle de la classe d'âge 1
+  sigma.M2[e] ~ dunif(0,10) # Variabilité interannuelle de la mortalité naturelle de la classe d'âge 2
+  sigma.M3[e] ~ dunif(0,10) # Variabilité interannuelle de la mortalité naturelle de la classe d'âge 3
+}# fin boucle e
+
+for (e in 2)
+{
+  log_mu_M4[e] ~ dnorm(log(mu_M4[e]),0.1) # Moyenne interannuelle de la mortalité naturelle de la classe d'âge 4 
+  log_mu_M5[e] ~ dnorm(log(mu_M5[e]),0.1) # Moyenne interannuelle de la mortalité naturelle de la classe d'âge 5
+  log_mu_M6[e] ~ dnorm(log(mu_M5[e]),0.1) # Moyenne interannuelle de la mortalité naturelle de la classe d'âge 5
+
+  sigma.M4[e] ~ dunif(0,10) # Variabilité interannuelle de la mortalité naturelle de la classe d'âge 4
+  sigma.M5[e] ~ dunif(0,10) # Variabilité interannuelle de la mortalité naturelle de la classe d'âge 5
+  sigma.M6[e] ~ dunif(0,10) # Variabilité interannuelle de la mortalité naturelle de la classe d'âge 6
+  
+}# fin boucle e
+
+
+# Paramètre des distributions des Mortalités par Pêche
+######################
+
+  mu_F1[1] <- 0.36 # Taux de mortalité par pêche de la classe d'âge 1 de l'année 2000 (ICES WGMHSA Report 2006)
+  mu_F2[1] <- 0.47 # Taux de mortalité par pêche de la classe d'âge 2 de l'année 2000 (ICES WGMHSA Report 2006)
+  mu_F3[1] <- 0.47 # Taux de mortalité par pêche de la classe d'âge 3 de l'année 2000 (ICES WGMHSA Report 2006)
+
+  mu_F1[2] <- 0.12 # Taux de mortalité par pêche de la classe d'âge 1 de l'année 2000 mais pour stock zone27 subarea 8c et 9a (ICES WGMHSA Report 2021)
+  mu_F2[2] <- 0.20 # Taux de mortalité par pêche de la classe d'âge 2 à 5 de l'année 2000 mais pour stock zone27 subarea 8c et 9a (ICES WGMHSA Report 2021)
+  mu_F3[2] <- 0.297 # Taux de mortalité par pêche de la classe d'âge 2 à 5 de l'année 2000 mais pour stock zone27 subarea 8c et 9a (ICES WGMHSA Report 2021)
+  mu_F4[2] <- 0.297 # Taux de mortalité par pêche de la classe d'âge 2 à 5 l'année 2000 mais pour stock zone27 subarea 8c et 9a (ICES WGMHSA Report 2021)
+  mu_F5[2] <- 0.297 # Taux de mortalité par pêche de la classe d'âge 2 à 5 l'année 2000 mais pour stock zone27 subarea 8c et 9a (ICES WGMHSA Report 2021)
+  mu_F6[2] <- 0.297 # Taux de mortalité par pêche de la classe d'âge 2 à 5 l'année 2000 mais pour stock zone27 subarea 8c et 9a (ICES WGMHSA Report 2021)
+ 
+for (e in 1:2)
+{
+  log_mu_F1[e] ~ dnorm(log(mu_F1[e]),0.1) # Moyenne interannuelle de la mortalité par pêche de la classe d'âge 1 
+  log_mu_F2[e] ~ dnorm(log(mu_F2[e]),0.1) # Moyenne interannuelle de la mortalité par pêche de la classe d'âge 2 
+  log_mu_F3[e] ~ dnorm(log(mu_F3[e]),0.1) # Moyenne interannuelle de la mortalité par pêche de la classe d'âge 3 
+
+  sigma.F1[e] ~ dunif(0,10) # Variabilité interannuelle de la mortalité par pêche de la classe d'âge 1
+  sigma.F2[e] ~ dunif(0,10) # Variabilité interannuelle de la mortalité par pêche de la classe d'âge 2
+  sigma.F3[e] ~ dunif(0,10) # Variabilité interannuelle de la mortalité par pêche de la classe d'âge 3
+}# fin boucle e
+
+for (e in 2)
+{
+  log_mu_F4[e] ~ dnorm(log(mu_F4[e]),0.1) # Moyenne interannuelle de la mortalité par pêche de la classe d'âge 4 
+  log_mu_F5[e] ~ dnorm(log(mu_F5[e]),0.1) # Moyenne interannuelle de la mortalité par pêche de la classe d'âge 5  
+  log_mu_F6[e] ~ dnorm(log(mu_F6[e]),0.1) # Moyenne interannuelle de la mortalité par pêche de la classe d'âge 6 
+
+  sigma.F4[e] ~ dunif(0,10) # Variabilité interannuelle de la mortalité par pêche de la classe d'âge 4
+  sigma.F5[e] ~ dunif(0,10) # Variabilité interannuelle de la mortalité par pêche de la classe d'âge 5
+  sigma.F6[e] ~ dunif(0,10) # Variabilité interannuelle de la mortalité par pêche de la classe d'âge 6
+
+}# fin boucle e
+
+# Paramètre des distributions des Taux de croissance 
+####################
+  
+  mu_g1[1] <- 1.1946 # Taux de croissance moyen recupéré des données (moyenne de (L2/L1) sur la période 2000-2022)
+  mu_g2[1] <- 1.0547 # Taux de croissance moyen recupéré des données (moyenne de (L3/L2) sur la période 2000-2022)
+  mu_g3[1] <- 1.0597 # Taux de croissance moyen recupéré des données (moyenne de (L4/L3) sur la période 2000-2022)
+
+  mu_g1[2] <- 1.2097 # Taux de croissance moyen recupéré des données (moyenne de (L2/L1) sur la période 2000-2022)
+  mu_g2[2] <- 1.0709 # Taux de croissance moyen recupéré des données (moyenne de (L3/L2) sur la période 2000-2022)
+  mu_g3[2] <- 1.0398 # Taux de croissance moyen recupéré des données (moyenne de (L4/L3) sur la période 2000-2022)
+  mu_g4[2] <- 1.0349 # Taux de croissance moyen recupéré des données (moyenne de (L5/L4) sur la période 2000-2022)
+  mu_g5[2] <- 1.0288 # Taux de croissance moyen recupéré des données (moyenne de (L6/L5) sur la période 2000-2022)
+  mu_g6[2] <- 1.0181 # Taux de croissance moyen recupéré des données (moyenne de (L7/L6) sur la période 2000-2022)
+
+
+for (e in 1:2)
+{
+  log_mu_g1[e] ~ dnorm(log(mu_g1[e]),0.1) # Moyenne interannuelle de la croissance de la classe d'âge 1
+  log_mu_g2[e] ~ dnorm(log(mu_g2[e]),0.1) # Moyenne interannuelle de la croissance de la classe d'âge 2
+  log_mu_g3[e] ~ dnorm(log(mu_g3[e]),0.1) # Moyenne interannuelle de la croissance de la classe d'âge 3
+
+  sigma.g1[e] ~ dunif(0,10) # prior de la variabilité interannuelle de la croissance à l'age 1
+  sigma.g2[e] ~ dunif(0,10) # prior de la variabilité interannuelle de la croissance à l'age 2
+  sigma.g3[e] ~ dunif(0,10) # prior de la variabilité interannuelle de la croissance à l'age 3
+
+}# fin boucle e
+
+for (e in 2)
+{
+  log_mu_g4[e] ~ dnorm(log(mu_g4[e]),0.1) # Moyenne interannuelle de la croissance de la classe d'âge 4
+  log_mu_g5[e] ~ dnorm(log(mu_g5[e]),0.1) # Moyenne interannuelle de la croissance de la classe d'âge 5
+  log_mu_g6[e] ~ dnorm(log(mu_g6[e]),0.1) # Moyenne interannuelle de la croissance de la classe d'âge 6
+
+  sigma.g4[e] ~ dunif(0,10) # prior de la variabilité interannuelle de la croissance à l'age 4
+  sigma.g5[e] ~ dunif(0,10) # prior de la variabilité interannuelle de la croissance à l'age 5
+  sigma.g6[e] ~ dunif(0,10) # prior de la variabilité interannuelle de la croissance à l'age 6
+  
+}# fin boucle e
+
+
+
+# Estimation des paramètres : Mortalités et Croissances (ajout des effets des covariables) 
+####################
+
+
+for (t in 1:(n_annee-1)){
+
+      ### Mortalité naturelle ###  
+
+	E_log_M1[t,1]=log_mu_M1[1]						
+	E_log_M1[t,2]=log_mu_M1[2]
+	
+	E_log_M2[t,1]=log_mu_M2[1]							
+	E_log_M2[t,2]=log_mu_M2[2]
+	
+	E_log_M3[t,1]=log_mu_M3[1]
+	E_log_M3[t,2]=log_mu_M3[2]
+  				
+      ### Pseudo-croissance ###  
+
+	E_log_g1[t,1]=log_mu_g1[1]
+	E_log_g1[t,2]=log_mu_g1[2]
+
+	E_log_g2[t,1]=log_mu_g2[1]
+	E_log_g2[t,2]=log_mu_g2[2]
+
+	E_log_g3[t,1]=log_mu_g3[1]
+	E_log_g3[t,2]=log_mu_g3[2]
+
+      ### Demographic transition parameter ###
+
+  	E_log_Z.SSN[t,1]=log_mu_Z.SSN[1]
+	E_log_Z.SSN[t,2]=log_mu_Z.SSN[2]
+
+}
+
+
+
+################################################################################
+###	   EFFET DES COVARIABLES SUR LA CROISSANCE ET LA MORTALITE	     ###
+################################################################################
+
+#########################
+###### Priors SSVS ######
+#########################
+
+  sd_bet <- 0.05              # avant : ~ dunif(0, 10) mais pas de justification pour mettre de la hierarchie ici, complique
+  c <- 1000
+  tau_in <- pow(sd_bet, -2)   # tau_in = 1/(sd_bet^2)
+  tau[1] <- tau_in            # coef effectively zero  --> spike prior
+  tau[2] <- tau_in / c        # nonzero coef, avec c --> slab prior 
+  # sd_bet et c sont définis de manière plutôt arbitraire
+
+
+for (e in 1:2)
+{
+
+### EFFETS SUR LA MORTALITE NAT 
+
+
+for (j in 1:ncov.M[e]){       		#pour chaque année j de chaq covar
+
+    p_inclusion.M1[j,e] ~ dbern(0.5)	#prior de la proba d'inclusion = 0.5 : chaq covariable a autant de chance d'être incluse ou excluse dans le modèle
+    tau_beta.M1[j,e]<-ifelse(p_inclusion.M1[j,e]==0,tau[1],tau[2])   #si p_inclusion[j]==0 --> spike (informative) prior, si p_inclusion[j]==1 --> slab (less informative) prior
+    beta.M1[j,e] ~ dnorm(0, tau_beta.M1[j,e])	#coefficient devant la covariable, affecté de son prior spike ou slab
+
+    p_inclusion.M2[j,e] ~ dbern(0.5)	#prior de la proba d'inclusion = 0.5 : chaq covariable a autant de chance d'être incluse ou excluse dans le modèle
+    tau_beta.M2[j,e]<-ifelse(p_inclusion.M2[j,e]==0,tau[1],tau[2])   #si p_inclusion[j]==0 --> spike (informative) prior, si p_inclusion[j]==1 --> slab (less informative) prior
+    beta.M2[j,e] ~ dnorm(0, tau_beta.M2[j,e])	#coefficient devant la covariable, affecté de son prior spike ou slab
+
+    p_inclusion.M3[j,e] ~ dbern(0.5)	#prior de la proba d'inclusion = 0.5 : chaq covariable a autant de chance d'être incluse ou excluse dans le modèle
+    tau_beta.M3[j,e]<-ifelse(p_inclusion.M3[j,e]==0,tau[1],tau[2])   #si p_inclusion[j]==0 --> spike (informative) prior, si p_inclusion[j]==1 --> slab (less informative) prior
+    beta.M3[j,e] ~ dnorm(0, tau_beta.M3[j,e])	#coefficient devant la covariable, affecté de son prior spike ou slab
+
+}
+
+### EFFETS SUR LA CROISSANCE 
+
+for (j in 1:ncov.g[e]){
+   p_inclusion.g1[j,e] ~ dbern(0.5)	#prior de la proba d'inclusion = 0.5 : chaq covariable a autant de chance d'être incluse ou excluse dans le modèle
+   tau_beta.g1[j,e]<-ifelse(p_inclusion.g1[j,e]==0,tau[1],tau[2])   #si p_inclusion[j]==0 --> spike (informative) prior, si p_inclusion[j]==1 --> slab (less informative) prior
+   beta.g1[j,e] ~ dnorm(0, tau_beta.g1[j,e])	#coefficient devant la covariable, affecté de son prior spike ou slab
+
+   p_inclusion.g2[j,e] ~ dbern(0.5)	#prior de la proba d'inclusion = 0.5 : chaq covariable a autant de chance d'être incluse ou excluse dans le modèle
+   tau_beta.g2[j,e]<-ifelse(p_inclusion.g2[j,e]==0,tau[1],tau[2])   #si p_inclusion[j]==0 --> spike (informative) prior, si p_inclusion[j]==1 --> slab (less informative) prior
+   beta.g2[j,e] ~ dnorm(0, tau_beta.g2[j,e])	#coefficient devant la covariable, affecté de son prior spike ou slab
+
+   p_inclusion.g3[j,e] ~ dbern(0.5)	#prior de la proba d'inclusion = 0.5 : chaq covariable a autant de chance d'être incluse ou excluse dans le modèle
+   tau_beta.g3[j,e]<-ifelse(p_inclusion.g3[j,e]==0,tau[1],tau[2])   #si p_inclusion[j]==0 --> spike (informative) prior, si p_inclusion[j]==1 --> slab (less informative) prior
+   beta.g3[j,e] ~ dnorm(0, tau_beta.g3[j,e])	#coefficient devant la covariable, affecté de son prior spike ou slab
+
+}
+
+### EFFETS SUR Z.SSN 
+
+for (j in 1:ncov.zssn[e]){
+  p_inclusion.zssn[j,e] ~ dbern(0.5)	#prior de la proba d'inclusion = 0.5 : chaq covariable a autant de chance d'être incluse ou excluse dans le modèle
+  tau_beta.zssn[j,e]<-ifelse(p_inclusion.zssn[j,e]==0,tau[1],tau[2])   #si p_inclusion[j]==0 --> spike (informative) prior, si p_inclusion[j]==1 --> slab (less informative) prior
+  beta.zssn[j,e] ~ dnorm(0, tau_beta.zssn[j,e])	#coefficient devant la covariable, affecté de son prior spike ou slab
+    }
+
+} #fin boucle e 
+
+
+
+#############################
+###### likelihood SSVS ###### (ajout des effets des covariables) 
+#############################
+
+for (e in 1:2)
+{
+  for (t in 1:(n_annee-1)){
+    M1[t,e] ~ dlnorm(E_log_M1[t,e] + X.M1[t,1:ncov.M[e],e] %*% beta.M1[1:ncov.M[e],e], 1/(sigma.M1[e]*sigma.M1[e]))
+    M2[t,e] ~ dlnorm(E_log_M2[t,e] + X.M2[t,1:ncov.M[e],e] %*% beta.M2[1:ncov.M[e],e], 1/(sigma.M2[e]*sigma.M2[e]))
+    M3[t,e] ~ dlnorm(E_log_M3[t,e] + X.M3[t,1:ncov.M[e],e] %*% beta.M3[1:ncov.M[e],e], 1/(sigma.M3[e]*sigma.M3[e]))  
+
+    g1[t,e] ~ dlnorm(E_log_g1[t,e] + X.g1[t,1:ncov.g[e],e] %*% beta.g1[1:ncov.g[e],e], 1/(sigma.g1[e]*sigma.g1[e]))
+    g2[t,e] ~ dlnorm(E_log_g2[t,e] + X.g2[t,1:ncov.g[e],e] %*% beta.g2[1:ncov.g[e],e], 1/(sigma.g2[e]*sigma.g2[e]))
+    g3[t,e] ~ dlnorm(E_log_g3[t,e] + X.g3[t,1:ncov.g[e],e] %*% beta.g3[1:ncov.g[e],e], 1/(sigma.g3[e]*sigma.g3[e]))  
+
+    Z.SSN[t,e] ~ dlnorm(E_log_Z.SSN[t,e] + X.ZSSN[t,1:ncov.zssn[e],e] %*% beta.zssn[1:ncov.zssn[e],e], 1/(sigma.Z.SSN[e]*sigma.Z.SSN[e]))  
+
+#M = mortalité nat de la classe d'âge considérée (1, 2 ou 3) 
+#g = croissance de la classe d'âge considérée (1, 2 ou 3) 
+#alpha = moy de la mortalité nat centrée autour de 0 
+#avec X matrice des valeurs centrée-réduites de chaq covar
+#beta = les coefs devant chaq covar
+# %*% : produit matriciel --> Y = alpha + combinaison linéaire de tous les effets (covar)
+#sigma.M.est : sigma.mortalité estimée issu du du modèle complet 2 
+ 
+  }
+} #end for e in 1:2
+
+
+##################################################################################################################################################
+for (e in 1:2)
+{
+  for (t in 1:(n_annee-1)){
+
+      #M1[t,e] ~ dlnorm(E_log_M1[t,e],1/(sigma.M1[e]*sigma.M1[e])) # Prior de la mortalité naturelle de la classe d'âge 1 de l'année t
+      #M2[t,e] ~ dlnorm(E_log_M2[t,e],1/(sigma.M2[e]*sigma.M2[e])) # Prior de la mortalité naturelle de la classe d'âge 2 de l'année t
+      #M3[t,e] ~ dlnorm(E_log_M3[t,e],1/(sigma.M3[e]*sigma.M3[e])) # Prior de la mortalité naturelle de la classe d'âge 3 de l'année t
+
+      ### Mortalité par pêche ###
+
+      F1[t,e] ~ dlnorm(log_mu_F1[e],1/(sigma.F1[e]*sigma.F1[e])) # Prior de la mortalité par pêche de la classe d'âge 1 de l'année t
+      F2[t,e] ~ dlnorm(log_mu_F2[e],1/(sigma.F2[e]*sigma.F2[e])) # Prior de la mortalité par pêche de la classe d'âge 2 de l'année t
+      F3[t,e] ~ dlnorm(log_mu_F3[e],1/(sigma.F3[e]*sigma.F3[e])) # Prior de la mortalité par pêche de la classe d'âge 3 de l'année t
+      
+      #Z.SSN[t,e] ~ dlnorm(E_log_Z.SSN[t,e],1/(sigma.Z.SSN[e]*sigma.Z.SSN[e])) # mortalité naturelle de la classe d'âge SSN de l'année t
+
+      ### Taux de croissance instantanée ###
+
+      #g1[t,e] ~ dlnorm(log_mu_g1[e],1/(sigma.g1[e]*sigma.g1[e])) # Prior de la croissance à l'age 1 de l'année t
+      #g2[t,e] ~ dlnorm(log_mu_g2[e],1/(sigma.g2[e]*sigma.g2[e])) # Prior de la croissance à l'age 2 de l'année t
+      #g3[t,e] ~ dlnorm(log_mu_g3[e],1/(sigma.g3[e]*sigma.g3[e])) # Prior de la croissance à l'age 3 de l'année t
+
+ } # Fin de boucle t des prior sur les paramètres
+
+}# fin boucle e
+
+for (e in 2)
+{
+  for (t in 1:(n_annee-1)){
+
+      ### Mortalité naturelle ###  
+
+	E_log_M4[t,e]=log_mu_M4[e]
+	E_log_M5[t,e]=log_mu_M5[e]
+  	E_log_M6[t,e]=log_mu_M6[e]
+
+      M4[t,e] ~ dlnorm(E_log_M4[t,e],1/(sigma.M4[e]*sigma.M4[e])) # Prior de la mortalité naturelle de la classe d'âge 4 de l'année t
+      M5[t,e] ~ dlnorm(E_log_M5[t,e],1/(sigma.M5[e]*sigma.M5[e])) # Prior de la mortalité naturelle de la classe d'âge 5 de l'année t
+      M6[t,e] ~ dlnorm(E_log_M6[t,e],1/(sigma.M6[e]*sigma.M6[e])) # Prior de la mortalité naturelle de la classe d'âge 6 de l'année t
+
+      ### Mortalité par pêche ###
+      
+      F4[t,e] ~ dlnorm(log_mu_F4[e],1/(sigma.F4[e]*sigma.F4[e])) # Prior de la mortalité par pêche de la classe d'âge 4 de l'année t
+      F5[t,e] ~ dlnorm(log_mu_F5[e],1/(sigma.F5[e]*sigma.F5[e])) # Prior de la mortalité par pêche de la classe d'âge 5 de l'année t
+      F6[t,e] ~ dlnorm(log_mu_F6[e],1/(sigma.F6[e]*sigma.F6[e])) # Prior de la mortalité par pêche de la classe d'âge 5 de l'année t
+
+      ### Taux de croissance instantanée ###
+
+	E_log_g4[t,e]=log_mu_g4[e]
+	E_log_g5[t,e]=log_mu_g5[e]
+  	E_log_g6[t,e]=log_mu_g6[e]
+
+      g4[t,e] ~ dlnorm(E_log_g4[t,e],1/(sigma.g4[e]*sigma.g4[e])) # Prior de la croissance à l'age 4 de l'année t
+      g5[t,e] ~ dlnorm(E_log_g5[t,e],1/(sigma.g5[e]*sigma.g5[e])) # Prior de la croissance à l'age 5 de l'année t
+      g6[t,e] ~ dlnorm(E_log_g6[t,e],1/(sigma.g6[e]*sigma.g6[e])) # Prior de la croissance à l'age 6 de l'année t
+
+
+ } # Fin de boucle t des prior sur les paramètres
+
+} # fin boucle e
+
+
+
+
+
+##################################################################################################################################################
+
+
+
+#################################
+###   Equation de processus   ###
+#################################
+
+
+################################
+# Construction du cycle de vie 
+
+for (e in 1)
+{
+for(t in 1:(n_annee)){
+
+N.SSN[t,e]<-mat[t,4,e]*N4[t,e] + mat[t,3,e]*N3[t,e] + mat[t,2,e]*N2[t,e] + mat[t,1,e]*N1[t,e] 	# abondance des poissons matures
+L.SSN[t,e]<-mean((mat[t,4,e]*N4[t,e]/N.SSN[t,e])*L4[t,e] + (mat[t,3,e]*N3[t,e]/N.SSN[t,e])*L3[t,e] + (mat[t,2,e]*N2[t,e]/N.SSN[t,e])*L2[t,e] + (mat[t,1,e]*N1[t,e]/N.SSN[t,e])*L1[t,e]) 
+
+}
+}# fin boucle e
+
+for (e in 2)
+{
+for(t in 1:(n_annee)){
+
+N.SSN[t,e]<- mat[t,7,e]*N7[t,e] + mat[t,6,e]*N6[t,e] + mat[t,5,e]*N5[t,e] + mat[t,4,e]*N4[t,e] + mat[t,3,e]*N3[t,e] + mat[t,2,e]*N2[t,e] + mat[t,1,e]*N1[t,e] 	# abondance des poissons matures
+L.SSN[t,e]<-mean((mat[t,7,e]*N7[t,e]/N.SSN[t,e])*L7[t,e]+(mat[t,6,e]*N6[t,e]/N.SSN[t,e])*L6[t,e] + (mat[t,5,e]*N5[t,e]/N.SSN[t,e])*L5[t,e] + (mat[t,4,e]*N4[t,e]/N.SSN[t,e])*L4[t,e] + (mat[t,3,e]*N3[t,e]/N.SSN[t,e])*L3[t,e] + (mat[t,2,e]*N2[t,e]/N.SSN[t,e])*L2[t,e] + (mat[t,1,e]*N1[t,e]/N.SSN[t,e])*L1[t,e]) 
+
+}
+}# fin boucle e
+
+
+
+for (e in 1:2)
+{
+  for(t in 1:(n_annee-1)){
+# Capture absolue (équation de Baranov) 
+#######################################
+
+      C1[t,e] <- (F1[t,e]/(M1[t,e]+F1[t,e])) * (1-exp(-(M1[t,e]+F1[t,e]))) * N1[t,e] # capture de la classe d'âge 1
+      C2[t,e] <- (F2[t,e]/(M2[t,e]+F2[t,e])) * (1-exp(-(M2[t,e]+F2[t,e]))) * N2[t,e] # capture de la classe d'âge 2
+      C3[t,e] <- (F3[t,e]/(M3[t,e]+F3[t,e])) * (1-exp(-(M3[t,e]+F3[t,e]))) * N3[t,e] # capture de la classe d'âge 3
+
+# Mortalité totale (par pêche et naturelle)
+########################################## 
+
+      Z1[t,e] <- M1[t,e] + F1[t,e] 
+      Z2[t,e] <- M2[t,e] + F2[t,e]
+      Z3[t,e] <- M3[t,e] + F3[t,e]
+
+# Estimation d'abondance
+########################
+	
+	N1[t+1,e] <- N.SSN[t,e]*(Z.SSN[t,e])
+  N2[t+1,e] <-  N1[t,e]*exp(-Z1[t,e]) # Equation déterministe de la classe d'âge 2
+  N3[t+1,e] <-  N2[t,e]*exp(-Z2[t,e]) # Equation déterministe de la classe d'âge 3
+	N4[t+1,e] <-  N3[t,e]*exp(-Z3[t,e]) # Equation déterministe de la classe d'âge 4. Dans le modèle, les individus de la classe d'âge 4 proviennent uniquement de la classe d'âge 3 
+
+# Estimation de longueur corporelle 
+########################
+
+      L1[t,e] ~ dlnorm(log(L1.prior.annuel[e]),1/(sigma.L*sigma.L)) # Equation déterministe longueur corporelle age 1
+      L2[t+1,e] <-  L1[t,e]*g1[t,e] # Equation déterministe longueur corporelle age 2
+      L3[t+1,e] <-  L2[t,e]*g2[t,e] # Equation déterministe longueur corporelle age 3
+      L4[t+1,e] <-  L3[t,e]*g3[t,e] # Equation déterministe longueur corporelle age 4
+
+
+  } # fin de la boucle des équations de processus
+
+
+  for (t in 1:n_annee){ # boucle de calcul de l'indice de l'abondance
+
+
+      I1[t,e] <- N1[t,e] * (1/Q[e]) # Indice d'abondance classe d'âge 1
+      I2[t,e] <- N2[t,e] * (1/Q[e]) # Indice d'abondance classe d'âge 2
+      I3[t,e] <- N3[t,e] * (1/Q[e]) # Indice d'abondance classe d'âge 3
+      I4[t,e] <- N4[t,e] * (1/Q[e]) # Indice d'abondance classe d'âge 4
+
+  } # fin de boucle de l'indice d'abondance
+
+}# fin boucle e
+
+
+
+for (e in 2)
+{
+  for(t in 1:(n_annee-1)){
+# Capture absolue (équation de Baranov) 
+#######################################
+
+      C4[t,e] <- (F4[t,e]/(M4[t,e]+F4[t,e])) * (1-exp(-(M4[t,e]+F4[t,e]))) * N4[t,e] # capture de la classe d'âge 4
+      C5[t,e] <- (F5[t,e]/(M5[t,e]+F5[t,e])) * (1-exp(-(M5[t,e]+F5[t,e]))) * N5[t,e] # capture de la classe d'âge 5
+      C6[t,e] <- (F6[t,e]/(M6[t,e]+F6[t,e])) * (1-exp(-(M6[t,e]+F6[t,e]))) * N6[t,e] # capture de la classe d'âge 6
+
+# Mortalité totale (par pêche et naturelle)
+########################################## 
+
+      Z4[t,e] <- M4[t,e] + F4[t,e] 
+      Z5[t,e] <- M5[t,e] + F5[t,e]
+      Z6[t,e] <- M6[t,e] + F6[t,e]
+
+# Estimation d'abondance
+########################
+	
+      	N5[t+1,e] <-  N4[t,e]*exp(-Z4[t,e]) # Equation déterministe de la classe d'âge 5
+      	N6[t+1,e] <-  N5[t,e]*exp(-Z5[t,e]) # Equation déterministe de la classe d'âge 6
+        N7[t+1,e] <-  N6[t,e]*exp(-Z6[t,e]) # Equation déterministe de la classe d'âge 7
+
+# Estimation de longueur corporelle 
+########################
+
+      L5[t+1,e] <-  L4[t,e]*g4[t,e] # Equation déterministe longueur corporelle age 5
+      L6[t+1,e] <-  L5[t,e]*g5[t,e] # Equation déterministe longueur corporelle age 6
+      L7[t+1,e] <-  L6[t,e]*g6[t,e] # Equation déterministe longueur corporelle age 6
+
+
+  } # fin de la boucle des équations de processus
+
+
+  for (t in 1:n_annee){ # boucle de calcul de l'indice de l'abondance
+
+      I5[t,e] <- N5[t,e] * (1/Q[e]) # Indice d'abondance classe d'âge 5
+      I6[t,e] <- N6[t,e] * (1/Q[e]) # Indice d'abondance classe d'âge 6
+      I7[t,e] <- N7[t,e] * (1/Q[e]) # Indice d'abondance classe d'âge 7
+
+  } # fin de boucle de l'indice d'abondance
+
+}# fin boucle e
+
+
+
+
+###############################
+### Equation d'observations ###
+###############################
+
+  sigma.c.obs <- 0.05 # Incertitude des données de captures, correpond à un CV de 5%
+
+for (e in 1:2)
+{
+  for (t in 1:(n_annee-1)){ # boucle pour ajuster les données de captures estimées aux données de captures observées 
+
+      	c1.obs[t,e] ~ dlnorm(log(C1[t,e])-(0.5*sigma.c.obs*sigma.c.obs),1/(sigma.c.obs*sigma.c.obs))
+      	c2.obs[t,e] ~ dlnorm(log(C2[t,e])-(0.5*sigma.c.obs*sigma.c.obs),1/(sigma.c.obs*sigma.c.obs))
+      	c3.obs[t,e] ~ dlnorm(log(C3[t,e])-(0.5*sigma.c.obs*sigma.c.obs),1/(sigma.c.obs*sigma.c.obs))
+
+	c1.pp[t,e] ~ dlnorm (log(C1[t,e])-(0.5*sigma.c.obs*sigma.c.obs),1/(sigma.c.obs*sigma.c.obs))	# log predictive , n1.pp = esperance
+	c2.pp[t,e] ~ dlnorm (log(C2[t,e])-(0.5*sigma.c.obs*sigma.c.obs),1/(sigma.c.obs*sigma.c.obs))	
+	c3.pp[t,e] ~ dlnorm (log(C3[t,e])-(0.5*sigma.c.obs*sigma.c.obs),1/(sigma.c.obs*sigma.c.obs))	
+  } # fin de boucle des captures
+}# fin boucle e
+
+for (e in 2)
+{
+  for (t in 1:(n_annee-1)){ # boucle pour ajuster les données de captures estimées aux données de captures observées 
+
+      	c4.obs[t,e] ~ dlnorm(log(C4[t,e])-(0.5*sigma.c.obs*sigma.c.obs),1/(sigma.c.obs*sigma.c.obs))
+      	c5.obs[t,e] ~ dlnorm(log(C5[t,e])-(0.5*sigma.c.obs*sigma.c.obs),1/(sigma.c.obs*sigma.c.obs))
+        c6.obs[t,e] ~ dlnorm(log(C6[t,e])-(0.5*sigma.c.obs*sigma.c.obs),1/(sigma.c.obs*sigma.c.obs))
+
+	c4.pp[t,e] ~ dlnorm (log(C4[t,e])-(0.5*sigma.c.obs*sigma.c.obs),1/(sigma.c.obs*sigma.c.obs))	# log predictive , n1.pp = esperance
+	c5.pp[t,e] ~ dlnorm (log(C5[t,e])-(0.5*sigma.c.obs*sigma.c.obs),1/(sigma.c.obs*sigma.c.obs))	
+  	c6.pp[t,e] ~ dlnorm (log(C6[t,e])-(0.5*sigma.c.obs*sigma.c.obs),1/(sigma.c.obs*sigma.c.obs))
+	
+  } # fin de boucle des captures
+}# fin boucle e
+
+
+
+for (e in 1:2)
+{
+  for (t in 1:n_annee){ # boucle pour ajuster les données d'abondance et de longueur corporelle estimées aux données observées
+
+#abondances
+
+	log_I1[t,e]<-log(I1[t,e])			# pour visualiser mon abondance I1 dans l echelle log
+	log_I2[t,e]<-log(I2[t,e])
+	log_I3[t,e]<-log(I3[t,e])
+	log_I4[t,e]<-log(I4[t,e])
+
+	n1.obs[t,e] ~ dlnorm((log(I1[t,e])-(0.5*sigma.n.obs[t,e]*sigma.n.obs[t,e])),1/(sigma.n.obs[t,e]*sigma.n.obs[t,e]))
+	n2.obs[t,e] ~ dlnorm((log(I2[t,e])-(0.5*sigma.n.obs[t,e]*sigma.n.obs[t,e])),1/(sigma.n.obs[t,e]*sigma.n.obs[t,e]))
+	n3.obs[t,e] ~ dlnorm((log(I3[t,e])-(0.5*sigma.n.obs[t,e]*sigma.n.obs[t,e])),1/(sigma.n.obs[t,e]*sigma.n.obs[t,e]))
+	n4.obs[t,e] ~ dlnorm((log(I4[t,e])-(0.5*sigma.n.obs[t,e]*sigma.n.obs[t,e])),1/(sigma.n.obs[t,e]*sigma.n.obs[t,e]))
+	
+	n1.pp[t,e] ~ dlnorm((log(I1[t,e])-(0.5*sigma.n.obs[t,e]*sigma.n.obs[t,e])),1/(sigma.n.obs[t,e]*sigma.n.obs[t,e]))  # log predictive , n1.pp = esperance
+	n2.pp[t,e] ~ dlnorm((log(I2[t,e])-(0.5*sigma.n.obs[t,e]*sigma.n.obs[t,e])),1/(sigma.n.obs[t,e]*sigma.n.obs[t,e]))
+	n3.pp[t,e] ~ dlnorm((log(I3[t,e])-(0.5*sigma.n.obs[t,e]*sigma.n.obs[t,e])),1/(sigma.n.obs[t,e]*sigma.n.obs[t,e]))
+	n4.pp[t,e] ~ dlnorm((log(I4[t,e])-(0.5*sigma.n.obs[t,e]*sigma.n.obs[t,e])),1/(sigma.n.obs[t,e]*sigma.n.obs[t,e]))
+	
+	# sigma.n.obs provient des données 
+
+#size
+
+	l1.obs[t,e] ~ dlnorm((log(L1[t,e])-(0.5*sigma.l1.obs[t,e]*sigma.l1.obs[t,e])),1/(sigma.l1.obs[t,e]*sigma.l1.obs[t,e]))
+	l2.obs[t,e] ~ dlnorm((log(L2[t,e])-(0.5*sigma.l2.obs[t,e]*sigma.l2.obs[t,e])),1/(sigma.l2.obs[t,e]*sigma.l2.obs[t,e]))
+	l3.obs[t,e] ~ dlnorm((log(L3[t,e])-(0.5*sigma.l3.obs[t,e]*sigma.l3.obs[t,e])),1/(sigma.l3.obs[t,e]*sigma.l3.obs[t,e]))
+	l4.obs[t,e] ~ dlnorm((log(L4[t,e])-(0.5*sigma.l4.obs[t,e]*sigma.l4.obs[t,e])),1/(sigma.l4.obs[t,e]*sigma.l4.obs[t,e]))
+	
+	l1.pp[t,e] ~ dlnorm((log(L1[t,e])-(0.5*sigma.l1.obs[t,e]*sigma.l1.obs[t,e])),1/(sigma.l1.obs[t,e]*sigma.l1.obs[t,e]))  # log predictive , l1.pp = esperance
+	l2.pp[t,e] ~ dlnorm((log(L2[t,e])-(0.5*sigma.l2.obs[t,e]*sigma.l2.obs[t,e])),1/(sigma.l2.obs[t,e]*sigma.l2.obs[t,e]))
+	l3.pp[t,e] ~ dlnorm((log(L3[t,e])-(0.5*sigma.l3.obs[t,e]*sigma.l3.obs[t,e])),1/(sigma.l3.obs[t,e]*sigma.l3.obs[t,e]))
+	l4.pp[t,e] ~ dlnorm((log(L4[t,e])-(0.5*sigma.l4.obs[t,e]*sigma.l4.obs[t,e])),1/(sigma.l4.obs[t,e]*sigma.l4.obs[t,e]))
+
+
+  } # fin de boucle des abondances et des longueurs corporelles 
+}# fin boucle e
+
+for (e in 2)
+{
+  for (t in 1:n_annee){ # boucle pour ajuster les données d'abondance et de longueur corporelle estimées aux données observées
+
+#abondances
+
+	log_I5[t,e]<-log(I5[t,e])			# pour visualiser mon abondance I1 dans l echelle log
+	log_I6[t,e]<-log(I6[t,e])
+  	log_I7[t,e]<-log(I7[t,e])
+
+	n5.obs[t,e] ~ dlnorm((log(I5[t,e])-(0.5*sigma.n.obs[t,e]*sigma.n.obs[t,e])),1/(sigma.n.obs[t,e]*sigma.n.obs[t,e]))
+	n6.obs[t,e] ~ dlnorm((log(I6[t,e])-(0.5*sigma.n.obs[t,e]*sigma.n.obs[t,e])),1/(sigma.n.obs[t,e]*sigma.n.obs[t,e]))
+  	n7.obs[t,e] ~ dlnorm((log(I7[t,e])-(0.5*sigma.n.obs[t,e]*sigma.n.obs[t,e])),1/(sigma.n.obs[t,e]*sigma.n.obs[t,e]))
+	
+	n5.pp[t,e] ~ dlnorm((log(I5[t,e])-(0.5*sigma.n.obs[t,e]*sigma.n.obs[t,e])),1/(sigma.n.obs[t,e]*sigma.n.obs[t,e]))  # log predictive , n1.pp = esperance
+	n6.pp[t,e] ~ dlnorm((log(I6[t,e])-(0.5*sigma.n.obs[t,e]*sigma.n.obs[t,e])),1/(sigma.n.obs[t,e]*sigma.n.obs[t,e]))
+	n7.pp[t,e] ~ dlnorm((log(I7[t,e])-(0.5*sigma.n.obs[t,e]*sigma.n.obs[t,e])),1/(sigma.n.obs[t,e]*sigma.n.obs[t,e]))
+	# sigma.n.obs provient des données 
+
+#size
+
+	l5.obs[t,e] ~ dlnorm((log(L5[t,e])-(0.5*sigma.l5.obs[t,e]*sigma.l5.obs[t,e])),1/(sigma.l5.obs[t,e]*sigma.l5.obs[t,e]))
+	l6.obs[t,e] ~ dlnorm((log(L6[t,e])-(0.5*sigma.l6.obs[t,e]*sigma.l6.obs[t,e])),1/(sigma.l6.obs[t,e]*sigma.l6.obs[t,e]))
+  	l7.obs[t,e] ~ dlnorm((log(L7[t,e])-(0.5*sigma.l7.obs[t,e]*sigma.l7.obs[t,e])),1/(sigma.l7.obs[t,e]*sigma.l7.obs[t,e]))
+	
+	l5.pp[t,e] ~ dlnorm((log(L5[t,e])-(0.5*sigma.l5.obs[t,e]*sigma.l5.obs[t,e])),1/(sigma.l5.obs[t,e]*sigma.l5.obs[t,e]))  # log predictive , l1.pp = esperance
+	l6.pp[t,e] ~ dlnorm((log(L6[t,e])-(0.5*sigma.l6.obs[t,e]*sigma.l6.obs[t,e])),1/(sigma.l6.obs[t,e]*sigma.l6.obs[t,e]))
+  	l7.pp[t,e] ~ dlnorm((log(L7[t,e])-(0.5*sigma.l7.obs[t,e]*sigma.l7.obs[t,e])),1/(sigma.l7.obs[t,e]*sigma.l7.obs[t,e]))
+
+  } # fin de boucle des abondances et des longueurs corporelles 
+}# fin boucle e
+
+
+}" # fin du modèle
+
+write(model_simple,file("Jointdemo.txt"))

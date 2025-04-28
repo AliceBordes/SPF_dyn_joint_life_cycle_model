@@ -1,0 +1,10 @@
+# R.script calling and formatting data to compile the model*
+- 1.2_run_model_Joint_SSVSdemographic
+- 3.4_run_model_Joint_SSVScovariates
+* the Rjags.txt files must be specified in the "settings" paragraph of the R.script (1.2 to run the Rjags model 1 or 2 and 3.4 to run the Rjags model 3 or 4)
+
+# Rjags.txt files containing the model to implement within the R.script
+- 1_rjags_model_joint_null : model with no intrinsic or extrinsic effects 
+- 2_rjags_model_joint_demographic : model with intrinsic effects as covariates 
+- 3_rjags_model_joint_demographic_latent : model with the significant intrinsic covariates from model 2_2_rjags_model_joint_demographic implemented as latent variables
+- 4_rjags_model_joint_SSVScovariates : model with intrinsic latent (demographic) variables and extrinsic (environmental) covariates 

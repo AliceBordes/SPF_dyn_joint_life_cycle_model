@@ -1,0 +1,4 @@
+# In this file : all data used in the model
+
+# Vizualisation of data used in the model
+# --> visu_obs_time_series.R 
