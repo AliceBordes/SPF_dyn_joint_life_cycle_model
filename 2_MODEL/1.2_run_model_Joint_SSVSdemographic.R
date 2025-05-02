@@ -34,10 +34,10 @@ library(here)
 base <- here()
 
 # Name of the rjags script file
-rjags_file_name = "2_rjags_model_joint_demographic.txt" # nom du modele a aller chercher, ecrit ds un fichier txt 
+rjags_file_name = "3_rjags_model_joint_demographic_latent.txt" # nom du modele a aller chercher, ecrit ds un fichier txt 
 
 # File main name 
-main_name = "Jointdemo"
+main_name = "Jointdemolatent"
 model_run = paste0(main_name,".txt")
 
 ## Set the number of years
@@ -453,7 +453,7 @@ n_chains = 3 # number of MCMC chains
 n_adapt = 5000 # number of iterations used as burn-in (bin)
 
 thin = 100 # a value is retrieved every 100 values 
-n_samples = 3000 # number of iterations retrieved per string 
+n_samples = 300 # number of iterations retrieved per string 
 n_iter = n_samples*thin # total number of iterations performed by the model
 n.burnin = 5000 # number of iterations used as burn-in (bin)
 
