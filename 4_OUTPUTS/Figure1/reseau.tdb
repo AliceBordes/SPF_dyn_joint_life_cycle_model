@@ -1,0 +1,171 @@
+/3.1
+(ODB.1
+	FirstRootClassName:	"AVDict"
+	Roots:	2
+	Version:	32
+)
+
+(AVDict.2
+	Key:	3
+	Key:	4
+	Key:	5
+	Key:	6
+	Key:	7
+	Key:	8
+	Key:	9
+	Key:	10
+	Value:	11
+	Value:	15
+	Value:	18
+	Value:	21
+	Value:	24
+	Value:	27
+	Value:	30
+	Value:	33
+)
+
+(AVStr.3
+	S:	"Lat_large"
+)
+
+(AVStr.4
+	S:	"Lg_cote"
+)
+
+(AVStr.5
+	S:	"Lat_cote"
+)
+
+(AVStr.6
+	S:	"Id"
+)
+
+(AVStr.7
+	S:	"Shape"
+)
+
+(AVStr.8
+	S:	"Lg_large"
+)
+
+(AVStr.9
+	S:	"Radiale"
+)
+
+(AVStr.10
+	S:	"Length"
+)
+
+(List.11
+	Child:	12
+	Child:	13
+	Child:	14
+)
+
+(AVStr.12
+	S:	"latfin"
+)
+
+(Bool.13
+	Truth:	1
+)
+
+(Nil.14
+)
+
+(List.15
+	Child:	16
+	Child:	17
+	Child:	14
+)
+
+(AVStr.16
+	S:	"Lgdeb"
+)
+
+(Bool.17
+	Truth:	1
+)
+
+(List.18
+	Child:	19
+	Child:	20
+	Child:	14
+)
+
+(AVStr.19
+	S:	"Latdeb"
+)
+
+(Bool.20
+	Truth:	1
+)
+
+(List.21
+	Child:	22
+	Child:	23
+	Child:	14
+)
+
+(AVStr.22
+	S:	"Id"
+)
+
+(Bool.23
+)
+
+(List.24
+	Child:	25
+	Child:	26
+	Child:	14
+)
+
+(AVStr.25
+	S:	"Shape"
+)
+
+(Bool.26
+	Truth:	1
+)
+
+(List.27
+	Child:	28
+	Child:	29
+	Child:	14
+)
+
+(AVStr.28
+	S:	"lgfin"
+)
+
+(Bool.29
+	Truth:	1
+)
+
+(List.30
+	Child:	31
+	Child:	32
+	Child:	14
+)
+
+(AVStr.31
+	S:	"Radiale"
+)
+
+(Bool.32
+	Truth:	1
+)
+
+(List.33
+	Child:	34
+	Child:	35
+	Child:	14
+)
+
+(AVStr.34
+	S:	"Length"
+)
+
+(Bool.35
+)
+
