@@ -119,7 +119,6 @@ vect.SSVS.sard <- c("M1","M2","M3","Z.SSN","g1","g2","g3")
 
 #  Loading data and extracting estimated natural mortality and pseudo-growth ----
 #'************************************************************
-
 load(file.path(base, part.file.path, paste0(name.Rdta,".RData")))
 
 mcmc <- res
@@ -311,12 +310,14 @@ pM1.anch<-mcmc_areas(
   prob = 0.9)+
   xlim(-2,1)+  
   scale_y_discrete(labels = c("Age 1 anchovy size"))+
-  theme(plot.margin = margin(1.2, 0, 1, 3.6, "cm"),
+  theme(plot.margin = margin(1.2, 0.5, 1, 3.6, "cm"),
         axis.text.y = element_text(size=13,face = "bold"),
         axis.text.x = element_text(size=12,face = "plain"),
         panel.background = element_rect(fill = "white"),
-        panel.grid.major = element_line(colour = "#333333"))+
-  geom_vline(xintercept=0, linetype="dashed",size=1)
+        panel.grid.major = element_line(colour = "#333333"),
+        plot.title = element_text(color = "black", face = "bold"))+
+  geom_vline(xintercept=0, linetype="dashed",size=1) +
+  ggtitle("Effects on natural mortality of age 1 anchovy")
 
 pM2.anch<-mcmc_areas(
   mcmc,
@@ -324,12 +325,14 @@ pM2.anch<-mcmc_areas(
   pars = c("alpha.bis_M2[1]","alpha_M2[1]"),     # effetcts to plot
   prob = 0.9)+
   scale_y_discrete(labels = c("Age 1 anchovy abundance","Age 2 anchovy abundance"))+
-  theme(plot.margin = margin(0.5, 0, 0, 2.3, "cm"),
+  theme(plot.margin = margin(0.5, 0.5, 0, 2.3, "cm"),
         axis.text.y = element_text(size=13,face = "bold"),
         axis.text.x = element_text(size=12,face = "plain"),
         panel.background = element_rect(fill = "white"),
-        panel.grid.major = element_line(colour = "#333333"))+
-  geom_vline(xintercept=0, linetype="dashed",size=1)
+        panel.grid.major = element_line(colour = "#333333"),
+        plot.title = element_text(color = "red", face = "bold"))+
+  geom_vline(xintercept=0, linetype="dashed",size=1)+
+  ggtitle("Effects on natural mortality of age 2 anchovy")
   #+xlim(-5,5)
 
 pzssn.anch<-mcmc_areas(
@@ -338,17 +341,21 @@ pzssn.anch<-mcmc_areas(
   pars = c("alpha_Z.SSN[1]"),     # effects to plot
   prob = 0.9)+
   scale_y_discrete(labels = c("Anchovy spawning stock abundance"))+
-  theme(plot.margin = margin(2, 0, 0, 0.1, "cm"),
+  theme(plot.margin = margin(2, 0.5, 0, 0.1, "cm"),
         axis.text.y = element_text(size=13,face = "bold"),
         axis.text.x = element_text(size=12,face = "plain"),
         panel.background = element_rect(fill = "white"),
-        panel.grid.major = element_line(colour = "#333333"))+
-  geom_vline(xintercept=0, linetype="dashed",size=1)
+        panel.grid.major = element_line(colour = "#333333"),
+        plot.title = element_text(color = "deeppink", face = "bold"))+
+  geom_vline(xintercept=0, linetype="dashed",size=1)+
+  ggtitle("Effects on recruit processes of anchovy")
 #+xlim(-5,5)
 
-windows()
-plot_grid(nrow=3,pM1.anch,pM2.anch,pzssn.anch,labels = c("Effects on natural mortality of age 1 anchovy", "Effects on natural mortality of age 2 anchovy","Effects on recruit processes of anchovy"), label_size = 14,hjust=-0.05,vjust=c(1.3,0,3.5),label_fontface="bold",label_colour="#003366")
-
+# windows()
+resol<-8
+png(filename = paste("Intrinsic_effects_anchovy",".png",sep=""), height = 520*resol, width = 520*resol, res=72*resol)
+plot_grid(nrow=3,pM1.anch,pM2.anch,pzssn.anch)
+dev.off()
 
 #°°°° sardine
 color_scheme_set("green")
@@ -359,11 +366,13 @@ pM1.sard<-mcmc_areas(
   prob = 0.9)+
   xlim(-1,6)+
   scale_y_discrete(labels = c("Age 1 sardine abundance"))+
-  theme(plot.margin = margin(1, 0, 2, 1.2, "cm"),
-        axis.text = element_text(size=13,face = "bold"),
+  theme(plot.margin = margin(1, 0.5, 2, 1.2, "cm"),
+        axis.text.y = element_text(size=13,face = "bold", color = "black"),
         axis.text.x = element_text(size=12,face = "plain"),
         panel.background = element_rect(fill = "white"),
-        panel.grid.major = element_line(colour = "#333333"))+
+        panel.grid.major = element_line(colour = "#333333"),
+        plot.title = element_text(color = "black", face = "bold"))+
+  ggtitle("Effects on natural mortality of sardine at age 1")+
   geom_vline(xintercept=0, linetype="dashed",size=1)
 
 
@@ -373,16 +382,21 @@ pM3.sard<-mcmc_areas(
   pars = c("alpha_M3[2]","alpha.bis_M3[2]","alpha.ter_M3[2]"),     # effetcts to plot
   prob = 0.9)+
   scale_y_discrete(labels = c("Age 1 sardine abundance","Age 2 sardine abundance","Old stages sardine abundance"))+
-  theme(plot.margin = margin(0, 0, 0, 0.3, "cm"),
+  theme(plot.margin = margin(0, 0.5, 0, 0.3, "cm"),
         axis.text.y = element_text(size=13,face = "bold"),
         axis.text.x = element_text(size=12,face = "plain"),
         panel.background = element_rect(fill = "white"),
-        panel.grid.major = element_line(colour = "#333333"))+
+        panel.grid.major = element_line(colour = "#333333"),
+        plot.title = element_text(color = "blue", face = "bold"))+
+  ggtitle("Effects on natural mortality of sardine at age 3")+
   geom_vline(xintercept=0, linetype="dashed",size=1)
 
 
-windows()
-plot_grid(nrow=2,pM1.sard,pM3.sard,labels = c("Effects on natural mortality of sardine at age 1","Effects on natural mortality of sardine at age 3"), label_size = 14,hjust=-0.05,vjust=c(1.3,-1),label_fontface="bold",label_colour="#009966")
+# windows()
+resol<-8
+png(filename = paste("Intrinsic_effects_sardine",".png",sep=""), height = 520*resol, width = 520*resol, res=72*resol)
+plot_grid(nrow=2,pM1.sard,pM3.sard)
+dev.off()
 
 # Latent intrinsic coefficient, median value
 #anchovy

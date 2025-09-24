@@ -70,6 +70,7 @@ for(v in 1:length(var.vect)){
     data_covar<-data_covar.M1
     beta.pattern<-"^beta.M1\\["
     title.SSVS<-paste("Age 1 natural mortality")
+    title.color<-"black"
     ncov<-ncov.M
   }
   if(var.vect[v]=="M2"){
@@ -78,6 +79,7 @@ for(v in 1:length(var.vect)){
     data_covar<-data_covar.M2
     beta.pattern<-"^beta.M2\\["
     title.SSVS<-paste("Age 2 natural mortality")
+    title.color<-"red"
     ncov<-ncov.M
   }
   if(var.vect[v]=="M3"){
@@ -86,6 +88,7 @@ for(v in 1:length(var.vect)){
     data_covar<-data_covar.M3
     beta.pattern<-"^beta.M3\\["
     title.SSVS<-paste("Age 3 natural mortality")
+    title.color<-"blue"
     ncov<-ncov.M
   }
 
@@ -95,6 +98,7 @@ for(v in 1:length(var.vect)){
     data_covar<-data_covar.M4
     beta.pattern<-"^beta.M4\\["
     title.SSVS<-paste("Age 4 natural mortality")
+    title.color<-"green3"
     ncov<-ncov.M
   }
   
@@ -104,6 +108,17 @@ for(v in 1:length(var.vect)){
     data_covar<-data_covar.M5
     beta.pattern<-"^beta.M5\\["
     title.SSVS<-paste("Age 5 natural mortality")
+    title.color<-"purple"
+    ncov<-ncov.M
+  }
+  
+  if(var.vect[v]=="M6"){
+    p_incl.pattern<-"^p_inclusion.M6\\["
+    bet<-"beta.M6["
+    data_covar<-data_covar.M6
+    beta.pattern<-"^beta.M6\\["
+    title.SSVS<-paste("Age 6 natural mortality")
+    title.color<-"orange"
     ncov<-ncov.M
   }
   
@@ -113,6 +128,7 @@ for(v in 1:length(var.vect)){
     data_covar<-data_covar.g1
     beta.pattern<-"^beta.g1\\["
     title.SSVS<-paste("Age 1 pseudo-growth")
+    title.color<-"black"
     ncov<-ncov.g
   }
   if(var.vect[v]=="g2"){
@@ -121,6 +137,7 @@ for(v in 1:length(var.vect)){
     data_covar<-data_covar.g2
     beta.pattern<-"^beta.g2\\["
     title.SSVS<-paste("Age 2 pseudo-growth")
+    title.color<-"red"
     ncov<-ncov.g
   }
   if(var.vect[v]=="g3"){
@@ -129,6 +146,7 @@ for(v in 1:length(var.vect)){
     data_covar<-data_covar.g3
     beta.pattern<-"^beta.g3\\["
     title.SSVS<-paste("Age 3 pseudo-growth")
+    title.color<-"blue"
     ncov<-ncov.g
   }
   
@@ -138,6 +156,7 @@ for(v in 1:length(var.vect)){
     data_covar<-data_covar.g4
     beta.pattern<-"^beta.g4\\["
     title.SSVS<-paste("Age 4 pseudo-growth")
+    title.color<-"green3"
     ncov<-ncov.g
   }
   
@@ -147,6 +166,17 @@ for(v in 1:length(var.vect)){
     data_covar<-data_covar.g5
     beta.pattern<-"^beta.g5\\["
     title.SSVS<-paste("Age 5 pseudo-growth")
+    title.color<-"purple"
+    ncov<-ncov.g
+  }
+  
+  if(var.vect[v]=="g6"){
+    p_incl.pattern<-"^p_inclusion.g6\\["
+    bet<-"beta.g6["
+    data_covar<-data_covar.g6
+    beta.pattern<-"^beta.g6\\["
+    title.SSVS<-paste("Age 6 pseudo-growth")
+    title.color<-"orange"
     ncov<-ncov.g
   }
   
@@ -156,6 +186,7 @@ for(v in 1:length(var.vect)){
     data_covar<-data_covar.Z.SSN
     beta.pattern<-"^beta.zssn\\["
     title.SSVS<-paste("Recruitement processes")
+    title.color<-"deeppink"
     var.vect[v]<-"zssn"
     ncov<-ncov.zssn
   }
@@ -303,7 +334,7 @@ if(!(str_contains(names(data_covar.M1.anch)[1],"anch")||str_contains(names(data_
       scale_y_discrete(limits = (df$covar),guide=guide_axis(angle=45,n.dodge=1))+
       theme(axis.text.x = element_text(size = 11,hjust = 0.5),
             text = element_text(size = 10),
-            plot.title = element_text(hjust = 0.5),
+            plot.title = element_text(hjust = 0.5, color = title.color),
             panel.spacing = unit(0.25, "lines"),
             panel.background = element_rect(fill = "white"),
             panel.grid.major = element_line(colour = "darkgrey", size=0.5),
