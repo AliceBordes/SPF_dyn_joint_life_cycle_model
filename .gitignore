@@ -5,12 +5,3 @@
 
 
 # files to ignore
-1_DATA/data_anchovy_NA.txt
-1_DATA/data_sardine_NA.txt
-1_DATA/data_sprat_NA.txt
-1_DATA/data_AMO_NAO.txt
-1_DATA/Env_stand_anchovy.txt
-1_DATA/Env_stand_sardine.txt
-1_DATA/maturity_anchovy.txt
-1_DATA/maturity_sardine.txt
-1_DATA/Joint*
